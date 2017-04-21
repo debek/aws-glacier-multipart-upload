@@ -5,18 +5,34 @@
 # sudo dnf install parallel
 # sudo pip install awscli
 
-byteSize=2147483648
-vaultName='backups'
+if [ "$#" -ne 3 ]; then
+    echo "USAGE: $0 vaultname 'description text' filename"
+    exit 1
+fi
 
-# count the number of files that begin with "part"
-fileCount=$(ls -1 | grep "^part" | wc -l)
+if [ -f "TreeHashExample.class" ]; then
+    javac TreeHashExample.java
+fi
+
+vaultName=$1
+description=$2
+filename=$3
+
+byteSize=4194304
+prefix="__glacier_upload"
+
+# Part file out
+split --bytes=$byteSize --verbose "$filename" $prefix
+
+# count the number of files that begin with "$prefix"
+fileCount=$(ls -1 | grep "^$prefix" | wc -l)
 echo "Total parts to upload: " $fileCount
 
 # get the list of part files to upload.  Edit this if you chose a different prefix in the split command
-files=$(ls | grep "^part")
+files=$(ls | grep "^$prefix")
 
 # initiate multipart upload connection to glacier
-init=$(aws glacier initiate-multipart-upload --account-id - --part-size $byteSize --vault-name $vaultName --archive-description 'Upload Description')
+init=$(aws glacier initiate-multipart-upload --account-id - --part-size $byteSize --vault-name $vaultName --archive-description "$description")
 
 echo "---------------------------------------"
 # xargs trims off the quotes
@@ -27,19 +43,20 @@ uploadId=$(echo $init | jq '.uploadId' | xargs)
 touch commands.txt
 
 #get total size in bytes of the archive
-archivesize=`ls -l $1 | cut -d ' ' -f 8`
+archivesize=`wc -c < "$filename"`
 
 # create upload commands to be run in parallel and store in commands.txt
 i=0
 for f in $files 
   do
-     filesize=`ls -l $f | cut -d ' ' -f 8`
+     filesize=`wc -c < $f`
      echo 'filesize '$filesize
      byteStart=$((i*byteSize))
      byteEnd=$((i*byteSize+byteSize-1))
      #if the filesize is less than the bytesize, set the bytesize to be the filesize
+     
      if [ $byteEnd -gt $filesize ]; then
-        byteEnd=$((filesize-1))
+        byteEnd=$((archivesize-1))
      fi
      echo aws glacier upload-multipart-part --body $f --range "'"'bytes '"$byteStart"'-'"$byteEnd"'/*'"'" --account-id - --vault-name $vaultName --upload-id $uploadId >> commands.txt
      i=$(($i+1))
@@ -58,7 +75,7 @@ echo "Verify that a connection is open:"
 aws glacier list-multipart-uploads --account-id - --vault-name $vaultName
 
 #compute the tree hash
-checksum=`java TreeHashExample $1 | cut -d ' ' -f 5`
+checksum=`java TreeHashExample "$filename" | cut -d ' ' -f 5`
 
 # end the multipart upload
 result=`aws glacier complete-multipart-upload --account-id - --vault-name $vaultName --upload-id $uploadId --archive-size $archivesize --checksum $checksum`
