@@ -1,9 +1,13 @@
 #!/bin/bash
 
 # This script will end all active AWS Glacier Multipart upload connections
+if [ "$#" -ne 1 ]; then
+    echo "USAGE: $0 vault-name"
+    exit 1
+fi
 
 # get all active multipart upload connections
-activeConn=$(aws glacier list-multipart-uploads --account-id - --vault-name media1)
+activeConn=$(aws glacier list-multipart-uploads --account-id - --vault-name $1)
 
 i=0
 while true
@@ -21,7 +25,7 @@ while true
      break
   else
      echo "Closing connection for: $uploadId"
-     aws glacier abort-multipart-upload --account-id - --vault-name media1 --upload-id $uploadId
+     aws glacier abort-multipart-upload --account-id - --vault-name $1 --upload-id $uploadId
   fi
 
   # i++
@@ -39,4 +43,4 @@ while true
 echo ""
 echo "Remaining Active Connections:"
 echo "(this can happen with the ID starts with -)"
-aws glacier list-multipart-uploads --account-id - --vault-name media1
+aws glacier list-multipart-uploads --account-id - --vault-name $1

@@ -5,24 +5,49 @@
 # sudo dnf install parallel
 # sudo pip install awscli
 
-if [ "$#" -ne 3 ]; then
-    echo "USAGE: $0 vaultname 'description text' filename"
+if [ "$#" -ne 1 ]; then
+    echo "USAGE: $0 filename"
     exit 1
 fi
 
-if [ -f "TreeHashExample.class" ]; then
+if [ ! -f "TreeHashExample.class" ]; then
     javac TreeHashExample.java
 fi
 
-vaultName=$1
-description=$2
-filename=$3
+filename=$1
 
-byteSize=4194304
+echo "What is the vault name?"
+read vaultName
+
+echo "What is the vault description?"
+read description
+
+echo "What size chunks (in MB) should be uploaded? [1(default)|2|4|8]"
+read chunkSize
+
+if [ -z "$chunkSize" ]; then
+   chunkSize=1
+fi
+
+sizeMap[1]=1048576
+sizeMap[2]=2097152
+sizeMap[4]=4194304
+sizeMap[8]=8388608
+
+byteSize=${sizeMap[$chunkSize]}
+
+if [ -z "$byteSize" ]; then
+   byteSize=$sizeMap[1]
+fi
+
 prefix="__glacier_upload"
 
 # Part file out
-split --bytes=$byteSize --verbose "$filename" $prefix
+if [[ $OSTYPE == linux* ]]; then
+        split --bytes=$byteSize --verbose "$filename" $prefix
+elif [[ $OSTYPE == darwin* ]]; then
+        split -b ${chunkSize}m "$filename" $prefix  # Mac OSX
+fi
 
 # count the number of files that begin with "$prefix"
 fileCount=$(ls -1 | grep "^$prefix" | wc -l)
@@ -46,21 +71,13 @@ touch commands.txt
 archivesize=`wc -c < "$filename"`
 
 # create upload commands to be run in parallel and store in commands.txt
-i=0
+byteStart=0
 for f in $files 
   do
-     filesize=`wc -c < $f`
-     echo 'filesize '$filesize
-     byteStart=$((i*byteSize))
-     byteEnd=$((i*byteSize+byteSize-1))
-     #if the filesize is less than the bytesize, set the bytesize to be the filesize
-     
-     if [ $byteEnd -gt $filesize ]; then
-        byteEnd=$((archivesize-1))
-     fi
-     echo aws glacier upload-multipart-part --body $f --range "'"'bytes '"$byteStart"'-'"$byteEnd"'/*'"'" --account-id - --vault-name $vaultName --upload-id $uploadId >> commands.txt
-     i=$(($i+1))
-     
+     fileSize=`wc -c < $f`
+     byteEnd=$((byteStart+fileSize-1))
+     echo aws glacier upload-multipart-part --body $f --range "'"'bytes '"$byteStart"'-'"$byteEnd"'/*'"'" --account-id - --vault-name "$vaultName" --upload-id $uploadId >> commands.txt
+     byteStart=$(($byteEnd+1))
   done
 
 # run upload commands in parallel
@@ -90,10 +107,6 @@ echo "List Active Multipart Uploads:"
 echo "Verify that the connection is closed:"
 aws glacier list-multipart-uploads --account-id - --vault-name $vaultName
 
-#echo "-------------"
-#echo "Contents of commands.txt"
-#cat commands.txt
 echo "--------------"
 echo "Deleting temporary commands.txt file"
-rm commands.txt
-
+rm ${prefix}* commands.txt
