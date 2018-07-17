@@ -25,22 +25,31 @@ This script leverages the <a href="https://www.gnu.org/software/parallel/paralle
 
 All of the following items in the Prerequisites section only need to be done once to set things up. 
 
-This script depends on <b>jq</b> for dealing with json and <b>parallel</b> for submitting the upload commands in parallel.  If you are using Fed/CentOS/RHEL, then run the following:
+The script depends on <b>jq</b> for dealing with json and <b>parallel</b> for submitting the upload commands in parallel.  If you are using Fed/CentOS/RHEL, then run the following:
 
     sudo dnf install jq
     sudo dnf install parallel
 
-It assumes you have an AWS account, and have signed up for the glacier service.  In this example, I have already created the vault named <i>backups</i> via AWS console.
+If you are using Mac, you can install with brew:
 
-It also assumes that you have the <a href="http://docs.aws.amazon.com/cli/latest/userguide/installing.html">AWS Command Line Interface</a> installed on your machine.  Again, if you are using Fed/CentOS/RHEL, then here is how you would get it:
+    brew install jq
+    brew install parallel
+
+The script assumes you have: 
+<ol>
+    <li>an AWS account</li>
+    <li>the <a href="http://docs.aws.amazon.com/cli/latest/userguide/installing.html">AWS Command Line Interface</a> installed on your machine.</li>
+    <li>configured your aws cli to pass credentials automatically</li>
+    <li>have java installed</li>
+</ol>
+
+To install the AWS cli:
 
     sudo pip install awscli
 
-Configure your machine to pass credentials automatically.  This allows you pass a single dash with the account-id argument.
+To configure your AWS cli:
 
     aws configure
-    
-Additionally, in order to use the script properly, you will need java in order to compile and execute TreeHashExample.java
 
 Before jumping into the script, verify that your connection works by describing the vault you have created, which is <i>backups</i> in my case. Run this describe-vault command and you should see similiar json results. 
 
@@ -53,20 +62,6 @@ Before jumping into the script, verify that your connection works by describing 
     "CreationDate": "2015-12-12T02:22:24.956Z", 
     "VaultName": "backups"
     }
-    
-Also ensure that you change the bytesize to something reasonable for your archive. I've set it to be 2GB now that Glacier allows filesizes between 1MB and 4GB as parts for the multipart upload.
-
-Download the glacierupload.sh script:
-
-    wget https://raw.githubusercontent.com/benporter/aws-glacier-multipart-upload/master/glacierupload.sh
-
-Make it executable:
-
-    chmod u+x glacierupload.sh
-    
-You will also need to download and compile TreeHashExample.java.
-
-    javac TreeHashExample.java
 
 **Script Usage**
 
@@ -74,12 +69,10 @@ Tar and zip the files you want to upload:
 
     tar -zcvf my-backup.tar.gz /location/to/zip/*
 
-Now chunk out your zipped file into equal peice chunks.  You can only pick multiples of 1MB up to 4MB.  This example chunks out the <i>my-backup.tar.gz</i> file into 4MB chunks, giving all of them the prefix <i>part</i> which is what the script expects to see.  If you choose something other than <i>part</i>, then you'll need to edit the script.
-
-    split --bytes=4194304 --verbose my-backup.tar.gz part
-
-Now it is time to run the script.  It assumes that your <i>part*</i> files and TreeHashExample are in the same directory as the script.
+Then run the script:
 
     ./glacierupload.sh my-backup.tar.gz
+
+    
 
 
