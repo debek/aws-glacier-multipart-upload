@@ -22,23 +22,14 @@ read vaultName
 echo "What is the vault description?"
 read description
 
-echo "What size chunks (in MB) should be uploaded? [1(default)|2|4|8]"
+echo "What size chunks (in MB) should be uploaded? Needs to be a power of 2 [(default)1|2|4|8|...]"
 read chunkSize
 
 if [ -z "$chunkSize" ]; then
    chunkSize=1
 fi
 
-sizeMap[1]=1048576
-sizeMap[2]=2097152
-sizeMap[4]=4194304
-sizeMap[8]=8388608
-
-byteSize=${sizeMap[$chunkSize]}
-
-if [ -z "$byteSize" ]; then
-   byteSize=$sizeMap[1]
-fi
+byteSize=$(expr $chunkSize \* 1024 \* 1024)
 
 prefix="__glacier_upload"
 
