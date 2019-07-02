@@ -5,8 +5,8 @@
 # sudo dnf install parallel
 # sudo pip install awscli
 
-if [ "$#" -ne 1 ]; then
-    echo "USAGE: $0 filename"
+if [ "$#" -le 1 ]; then
+    echo "USAGE: $0 filename vaultName resultFile chunkSize"
     exit 1
 fi
 
@@ -15,19 +15,19 @@ if [ ! -f "TreeHashExample.class" ]; then
 fi
 
 filename=$1
-
-echo "What is the vault name?"
-read vaultName
-
-echo "What is the vault description?"
-read description
-
-echo "What size chunks (in MB) should be uploaded? Needs to be a power of 2 [(default)1|2|4|8|...]"
-read chunkSize
+vaultName=$2
+description=$1
+chunkSize=$4
+resultFile=$3
 
 if [ -z "$chunkSize" ]; then
-   chunkSize=1
+   chunkSize=1024
 fi
+
+if [ -z "$result_file" ]; then
+   result_file=result.json
+fi
+
 
 byteSize=$(expr $chunkSize \* 1024 \* 1024)
 
@@ -90,7 +90,10 @@ result=`aws glacier complete-multipart-upload --account-id - --vault-name $vault
 
 #store the json response from amazon for record keeping
 touch result.json
-echo $result >> result.json
+DATE=$(TZ=America/Sao_Paulo date +"%Y%m%d_%Hh%Mm%Ss%Z")
+
+echo $DATE $filename $result
+echo $DATE $filename $result >> result.json
 
 # list open multipart connections
 echo "------------------------------"
