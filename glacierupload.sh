@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # dependencies, jq and parallel:
-# sudo dnf install jq
-# sudo dnf install parallel
-# sudo pip install awscli
+# sudo apt install jq
+# sudo apt install parallel
+# sudo apt install awscli
 
 if [ "$#" -le 1 ]; then
-    echo "USAGE: $0 filename vaultName resultFile chunkSize"
+    echo "USAGE: $0 filename vaultName resultFile glacierDb chunkSize"
     exit 1
 fi
 
@@ -15,18 +15,26 @@ if [ ! -f "TreeHashExample.class" ]; then
 fi
 
 filename=$1
-vaultName=$2
 description=$1
-chunkSize=$4
+vaultName=$2
 resultFile=$3
+glacierDbFile=$4
+chunkSize=$5
+
 
 if [ -z "$chunkSize" ]; then
    chunkSize=1024
 fi
 
-if [ -z "$result_file" ]; then
-   result_file=result.json
+if [ -z "$resultFile" ]; then
+   resultFile=glacier.last.out
 fi
+
+if [ -z "$glacierDbFile" ]; then
+   glacierDbFile=glacier-db
+fi
+
+
 
 
 byteSize=$(expr $chunkSize \* 1024 \* 1024)
@@ -89,11 +97,14 @@ checksum=`java TreeHashExample "$filename" | cut -d ' ' -f 5`
 result=`aws glacier complete-multipart-upload --account-id - --vault-name $vaultName --upload-id $uploadId --archive-size $archivesize --checksum $checksum`
 
 #store the json response from amazon for record keeping
-touch result.json
 DATE=$(TZ=America/Sao_Paulo date +"%Y%m%d_%Hh%Mm%Ss%Z")
 
-echo $DATE $filename $result
-echo $DATE $filename $result >> result.json
+echo $DATE $filename $result >> $resultFile
+
+archiveId=$(echo $result | jq '.archiveId' | xargs)
+echo $DATE $filename $uploadId >> $glacierDbFile
+
+echo $DATE $filename $archiveId
 
 # list open multipart connections
 echo "------------------------------"
