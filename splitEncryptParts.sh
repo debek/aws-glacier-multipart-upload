@@ -28,12 +28,6 @@ DUMP_FILENAME_PART="${DUMP_FILENAME}-part-"
 FOLDER_TAR="${DUMP_FILENAME}.tar"
 FOLDER_TAR_PART="${DUMP_FILENAME}.tar-part-"
 
-
-#GRS_BACKUP_DUMP_DIR por padrão é '/opt/gradus/omgradus/backup/dump'
-DUMP_FILE="${GRS_BACKUP_DUMP_DIR}/${DUMP_FILENAME}"
-DUMP_FILE_PART="${GRS_BACKUP_DUMP_DIR}/${DUMP_FILENAME_PART}"
-
-
 CERT1_FILE="${GRS_CONF_CRYPTO_DIR}/gradus-masterkey-publiccert.pem"
 CERT2_FILE="${GRS_CONF_CRYPTO_DIR}/${SISTEMA}-backups-${CLIENTE}-${AMBIENTE}-publiccert.pem"
 
@@ -45,11 +39,11 @@ VAULT_NAME=${SISTEMA}-${CLIENTE}-backups-001
 
 
 #divide em pegados de 1gb****
-split -b ${byteSize} ${DUMP_FILE} ${DUMP_FILENAME_PART}
+split -b ${byteSize} ${DUMP_FILENAME} ${DUMP_FILENAME_PART}
 
 
 # Encrypta o DUMP_FILE's usando as chaves gradus-masterkey e a chave especifica do container****
-for f in ${DUMP_FILE_PART}* ; do [ -f $f ] && openssl  smime -encrypt -stream -aes256 -in $f -binary -outform DEM ${CERT1_FILE} ${CERT2_FILE}  >  $f.crypt; done
+for f in ${DUMP_FILENAME_PART}* ; do [ -f $f ] && openssl  smime -encrypt -stream -aes256 -in $f -binary -outform DEM ${CERT1_FILE} ${CERT2_FILE}  >  $f.crypt; done
 
 tar -cvf ${FOLDER_TAR} *.crypt
 rm *-part-*
