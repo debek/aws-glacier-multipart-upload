@@ -43,7 +43,7 @@ split -b ${byteSize} ${DUMP_FILENAME} ${DUMP_FILENAME_PART}
 
 
 # Encrypta o DUMP_FILE's usando as chaves gradus-masterkey e a chave especifica do container****
-for f in ${DUMP_FILENAME_PART}* ; do [ -f $f ] && openssl  smime -encrypt -stream -aes256 -in $f -binary -outform DEM ${CERT1_FILE} ${CERT2_FILE}  >  $f.crypt; done
+for f in ${DUMP_FILENAME_PART}* ; do [ -f $f ] && openssl  smime -encrypt -stream -aes256 -in $f -binary -outform DEM ${CERT1_FILE} ${CERT2_FILE}  >  $f.crypt && rm $f ; done
 
 tar -cvf ${FOLDER_TAR} *.crypt
 rm *-part-*
