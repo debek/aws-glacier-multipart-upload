@@ -102,8 +102,7 @@ DATE=$(TZ=America/Sao_Paulo date +"%Y%m%d_%Hh%Mm%Ss%Z")
 echo $DATE $filename $result >> $resultFile
 
 archiveId=$(echo $result | jq '.archiveId' | xargs)
-echo $DATE $filename $uploadId >> $glacierDbFile
-
+echo $DATE $filename $archiveId >> $glacierDbFile
 echo $DATE $filename $archiveId
 
 # list open multipart connections
