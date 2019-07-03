@@ -29,10 +29,6 @@ FOLDER_TAR="${DUMP_FILENAME}.tar"
 FOLDER_TAR_PART="${DUMP_FILENAME}.tar-part-"
 
 
-#mover o dump para pasta padrao de dumps
-mv ${DUMP_FILENAME} /opt/gradus/omgradus/backup/dump/${DUMP_FILENAME}
-cd /opt/gradus/omgradus/backup/dump/
-
 #GRS_BACKUP_DUMP_DIR por padrão é '/opt/gradus/omgradus/backup/dump'
 DUMP_FILE="${GRS_BACKUP_DUMP_DIR}/${DUMP_FILENAME}"
 DUMP_FILE_PART="${GRS_BACKUP_DUMP_DIR}/${DUMP_FILENAME_PART}"
