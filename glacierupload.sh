@@ -56,7 +56,7 @@ echo "Total parts to upload: " $fileCount
 files=$(ls | grep "^$prefix")
 
 # initiate multipart upload connection to glacier
-init=$(aws glacier initiate-multipart-upload --account-id - --part-size $byteSize --vault-name $vaultName --archive-description "$description")
+init=$(/usr/local/bin/aws glacier initiate-multipart-upload --account-id - --part-size $byteSize --vault-name $vaultName --archive-description "$description")
 
 echo "---------------------------------------"
 # xargs trims off the quotes
@@ -75,7 +75,7 @@ for f in $files
   do
      fileSize=`wc -c < $f`
      byteEnd=$((byteStart+fileSize-1))
-     echo aws glacier upload-multipart-part --body $f --range "'"'bytes '"$byteStart"'-'"$byteEnd"'/*'"'" --account-id - --vault-name "$vaultName" --upload-id $uploadId >> commands.txt
+     echo /usr/local/bin/aws glacier upload-multipart-part --body $f --range "'"'bytes '"$byteStart"'-'"$byteEnd"'/*'"'" --account-id - --vault-name "$vaultName" --upload-id $uploadId >> commands.txt
      byteStart=$(($byteEnd+1))
   done
 
@@ -88,13 +88,13 @@ parallel --load 100% -a commands.txt --no-notice --bar
 
 echo "List Active Multipart Uploads:"
 echo "Verify that a connection is open:"
-aws glacier list-multipart-uploads --account-id - --vault-name $vaultName
+/usr/local/bin/aws glacier list-multipart-uploads --account-id - --vault-name $vaultName
 
 #compute the tree hash
 checksum=`java TreeHashExample "$filename" | cut -d ' ' -f 5`
 
 # end the multipart upload
-result=`aws glacier complete-multipart-upload --account-id - --vault-name $vaultName --upload-id $uploadId --archive-size $archivesize --checksum $checksum`
+result=`/usr/local/bin/aws glacier complete-multipart-upload --account-id - --vault-name $vaultName --upload-id $uploadId --archive-size $archivesize --checksum $checksum`
 
 #store the json response from amazon for record keeping
 DATE=$(TZ=America/Sao_Paulo date +"%Y%m%d_%Hh%Mm%Ss%Z")
@@ -109,7 +109,7 @@ echo $DATE $filename $archiveId
 echo "------------------------------"
 echo "List Active Multipart Uploads:"
 echo "Verify that the connection is closed:"
-aws glacier list-multipart-uploads --account-id - --vault-name $vaultName
+/usr/local/bin/aws glacier list-multipart-uploads --account-id - --vault-name $vaultName
 
 echo "--------------"
 echo "Deleting temporary commands.txt file"
