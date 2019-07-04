@@ -113,4 +113,4 @@ echo "Verify that the connection is closed:"
 
 echo "--------------"
 echo "Deleting temporary commands.txt file"
-rm ${prefix}* commands.txt
+rm ${prefix}* commands.txt ${filename}
