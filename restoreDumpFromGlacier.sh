@@ -28,8 +28,9 @@ tar -xvf $filename
 for f in *.crypt ; do [ -f $f ] && openssl smime -decrypt -inform DER -in $f -inkey $masterKey > $f-part && rm $f ; done
 
 #juntar todas as partes
-cat *'-part-'* > $filename
+filenameZip =$(echo $filename | sed -e 's/.tar//g')
+cat *'-part-'* > $filenameZip
 rm *'-part'*
 
 #descompactar arquivo
-bzip2 -d $filename
+bzip2 -d $filenameZip
