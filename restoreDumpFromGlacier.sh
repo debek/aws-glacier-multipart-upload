@@ -22,7 +22,7 @@ if [ -z "$vaultName" ]; then
 fi
 
 # recuperação glacier
-aws glacier get-job-output --account-id - --vault-name $vaultName --job-id $jobId $filename
+aws glacier get-job-output --account-id - --vault-name $vaultName --job-id=$jobId $filename
 
 # descompatar o tar os com arquivos encryptados individualmente
 tar -xvf $filename
