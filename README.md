@@ -32,8 +32,7 @@ The script depends on <b>jq</b> for dealing with json and <b>parallel</b> for su
 
 If you are using Mac, you can install with brew:
 
-    brew install jq
-    brew install parallel
+    brew install jq parallel
 
 The script assumes you have: 
 <ol>
@@ -45,11 +44,11 @@ The script assumes you have:
 
 To install the AWS cli:
 
-    sudo pip install awscli
+    pip3 install awscli --upgrade --user
 
 To configure your AWS cli:
 
-    aws configure
+    aws configure --profile your-aws-profile-name
 
 Before jumping into the script, verify that your connection works by describing the vault you have created, which is <i>backups</i> in my case. Run this describe-vault command and you should see similiar json results. 
 
@@ -63,6 +62,14 @@ Before jumping into the script, verify that your connection works by describing 
     "VaultName": "backups"
     }
 
+**Install**
+
+for mac
+
+```
+sudo ln -s $(pwd)/glacierupload.sh /usr/local/bin/glacierupload
+```
+
 **Script Usage**
 
 Tar and zip the files you want to upload:
@@ -71,8 +78,9 @@ Tar and zip the files you want to upload:
 
 Then run the script:
 
-    ./glacierupload.sh my-backup.tar.gz
+    export AWS_PROFILE=your-aws-profile-name
+    glacierupload my-backup.tar.gz your-vault-name
 
-    
+
 
 
