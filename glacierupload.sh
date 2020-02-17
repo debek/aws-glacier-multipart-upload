@@ -11,7 +11,7 @@ if [ "$#" -le 1 ]; then
 fi
 
 filename=$(readlink -f $1)
-description=$1
+description=$6
 vaultName=$2
 resultFile=$3
 glacierDbFile=$4
