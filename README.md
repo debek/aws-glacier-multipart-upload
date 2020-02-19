@@ -82,17 +82,16 @@ Then run the script:
     glacierupload my-backup.tar.gz your-vault-name
 
 
-**Script Usage**
+**More Advanced Usage**
 
-Firstable I prefare compess file what you will archive.
+Firstable I prefare compess a file what you want archive.
 
-Encrypt:
-tar cf - <file> | pigz -11 -p 32 > <file>.tar.gz
-
-Decrypt for future:
+Encrypt file:
+```    tar cf - <file> | pigz -11 -p 32 > <file>.tar.gz ```
 
 Backup to glacier:
+```
 AWS_PROFILE=default ./glacierupload.sh "<file>" "<vault>" "logs/result.txt" "logs/database.txt" "8"
 AWS_PROFILE=default ./glacierupload.sh "<file>" "<vault>" "" "" "1"
-
 AWS_PROFILE=default ./glacierupload.sh "/home/ddebny/workspace-23-11-2019.veracrypt" "workspace" "logs/result.txt" "logs/database.txt" "128" "workspace-23-11-2019.veracrypt"
+```
