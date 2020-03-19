@@ -86,8 +86,13 @@ Then run the script:
 
 Firstable I prefare compess a file what you want archive.
 
-Encrypt file:
-```    tar cf - <file> | pigz -11 -p 32 > <file>.tar.gz ```
+Compress file or directory:
+```    tar cf - <file_or_directory> | pigz -11 -p 32 > <file_name>.tar.gz ```
+
+Encrypt and decrypt file:
+```
+	gpg -c <file_name>
+	gpg --output <file_name>.tar.gz -d <file_name>.tar.gz.gpg ```
 
 Backup to glacier:
 ```
